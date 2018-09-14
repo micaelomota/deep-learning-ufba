@@ -2,6 +2,7 @@ import os
 import numpy as np
 import cv2
 from src import dataloader
+from src import gradient_descendent
 
 #color = cv2.imread('nome.jpg', cv2.IMREAD_COLOR)
 #gray = cv2.imread('nome.jpg', cv2.IMREAD_GRAYSCALE)
@@ -13,11 +14,11 @@ from src import dataloader
 # salva imagem
 #cv2.imwrite('saida.png', img)
 
-data, labels = dataloader.loadData("data_part1/train/")
-td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
+#data, labels = dataloader.loadData("data_part1/train/")
+#td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
 
-print(tl[0])
+#print(tl[0])
 
-cv2.imshow('Imagem', td[0])
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+#cv2.imshow('Imagem', td[0])
+#cv2.waitKey(0)
+#cv2.destroyAllWindows()
