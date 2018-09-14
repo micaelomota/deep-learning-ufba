@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import cv2
-from helpers import dataloader
+from src import dataloader
 
 #color = cv2.imread('nome.jpg', cv2.IMREAD_COLOR)
 #gray = cv2.imread('nome.jpg', cv2.IMREAD_GRAYSCALE)
