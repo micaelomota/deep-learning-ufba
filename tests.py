@@ -12,4 +12,5 @@ def testDataloader():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-testDataloader()
+if (__name__ == '__main__'):
+	testDataloader()
