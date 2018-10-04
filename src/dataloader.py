@@ -6,20 +6,22 @@ import os
 def loadData(path):
     data = []
     label = []
+    classes = []
 
-    folders = os.listdir(path)
+    folders = sorted(os.listdir(path))
     for folder in folders:
-        files = os.listdir(path + folder)
+        files = sorted(os.listdir(path + folder))
         print("Folder " + folder + " - " + str(len(files)) + " files found")
+        classes.append(folder)
 
         for f in files:
-            label.append(folder)
+            label.append(len(classes)-1)
             imagePath = os.path.join(path, folder, f)
-            img = cv2.imread(imagePath, cv2.IMREAD_COLOR)
+            img = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
             data.append(img)
             #print("loading: "+ path + folder + f)
 
-    return np.array(data), np.array(label)
+    return np.array(data), np.array(label), np.array(classes)
 
 def splitValidation(data, label, percentValidation):
     vl = int(len(data) * percentValidation/100)

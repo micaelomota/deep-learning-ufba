@@ -1,45 +1,71 @@
-from numpy import *
+import numpy as np
 from src import dataloader
 import cv2
 
-data, labels = dataloader.loadData("data_part1/train/")
-td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
+def gradient_descent_step(b0, w0, x, y, learning_rate):
+    b_grad = 0
+    w_grad = np.zeros(len(w0))
+    N = len(x)
+    loss = 0.
+    for i in range(N): # x[i] -> y[i]
+        y_ = np.dot(x[i], w0) + b0;
+        deltinha = y_ - y[i]
+        loss += 1./N * (y_ - y[i])**2
+        w_grad += deltinha*x[i] * 2./N
+        b_grad += 2./N * deltinha
+
+    b1 = b0 - (learning_rate * b_grad)
+    w1 = w0 - (learning_rate * w_grad)
+    #print(b1)
+    return b1, w1, loss
+
+def validate(x, y, w0, b0):
+    ok = 0
+    for i in range(len(x)):
+        y_ = np.dot(x[i], w0) + b0
+        if (int(round(y_)) == y[i]):
+            ok += 1
+        
+    return ok/len(x)
 
 
-# y = mx + b # m is slope, b is y-intercept
-def compute_error_for_line_given_points(b, m, points):
-    totalError = 0
-    for i in range(0, len(points)):
-        x = points[i, 0]
-        y = points[i, 1]
-        totalError += (y - (m * x + b)) ** 2
-    return totalError / float(len(points))
+if __name__ == '__main__': # main here
+    data, labels, classes = dataloader.loadData("data_part1/train/")
+    td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
 
-def step_gradient(b_current, m_current, points, learningRate):
-    b_gradient = 0
-    m_gradient = 0
-    N = float(len(points))
-    for i in range(0, len(points)):
-        x = points[i, 0]
-        y = points[i, 1]
-        b_gradient += -(2/N) * (y - ((m_current * x) + b_current))
-        m_gradient += -(2/N) * x * (y - ((m_current * x) + b_current))
-    new_b = b_current - (learningRate * b_gradient)
-    new_m = m_current - (learningRate * m_gradient)
-    return new_b, new_m
+    # normalizing train and validation data [0, 1]
+    td = np.reshape(td, (len(td), 77*71))
+    vd = np.reshape(vd, (len(vd), 77*71))
+    td = td/255.
+    vd = vd/255.
 
-def gradient_descent_runner(points, starting_b, starting_m, learning_rate, num_iterations):
-    b = starting_b
-    m = starting_m
-    for i in range(num_iterations):
-        b, m = step_gradient(b, m, array(points), learning_rate)
-    return [b, m]
+    w = np.random.uniform(-1, 1, len(td[0]))
+    b = 0
 
-if __name__ == '__main__':
-    #run()
-	for i in range(0, 4):
-		cv2.imshow('imagem' + str(i), td[i])
+    epoch = 200
+    learning_rate = 0.001
+    batch_size = 100
+
+    print("Trainning...")
+    for i in range(1, epoch):
+        
+        v = 0
+        for j in range (len(td)//batch_size):
+            l = j*batch_size
+            r = min(l+batch_size, len(td))
+            b, w, loss = gradient_descent_step(b, w, td[l:r], tl[l:r], learning_rate)
+            v = loss
+            
+            #print(loss)
+
+        ac = validate(vd, vl, w, b)
+
+        print("ac: {}; loss: {}".format(ac, v))
+
+
+	# for i in range(0, 4):
+	# 	cv2.imshow('imagem' + str(i), td[i])
 		
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	# cv2.waitKey(0)
+	# cv2.destroyAllWindows()
 	#print(td)
