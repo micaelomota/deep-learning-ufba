@@ -2,29 +2,29 @@ import numpy as np
 from src import dataloader
 import cv2
 
-def sigmoid(z):
-    return 1.0/(1.0 + np.exp(-z))
-
 def reLU(z):
     return [x if x > 0 else 0 for x in z]
+
+def sigmoid(z):
+    return 1.0/(1.0 + np.exp(-z))
 
 def gradient_descent_step(b0, w0, x, y, learning_rate):
     b_grad = np.zeros(10)
     w_grad = np.zeros((len(w0), 10))
     
     N = len(x)
-
     for i in range(N): # x[i] -> y[i]
-        y_ = reLU(np.dot(x[i], w0) + b0)
-
-        loss = y_ - y[i]
+        y_ = sigmoid(np.dot(x[i], w0) + b0)
         
-        a = np.reshape(loss, (1, 10))
-        b = np.reshape(x[i], (x[i].shape[0], 1))
+        # derivada de E em W
+        dE = (y_ - y[i]) * (y_*(1-y_))
 
-        w_grad += a*b * 2./N
-        b_grad += 2./N * loss
+        for j in range(len(x[i])):
+            w_grad[j] += x[i][j]*dE
 
+        b_grad += dE/N
+
+    w_grad = w_grad/N
 
     b1 = b0 - (learning_rate * b_grad)
     w1 = w0 - (learning_rate * w_grad)
@@ -35,10 +35,7 @@ def validate(x, y, w0, b0):
     ok = 0
     for i in range(len(x)):
         y_ = np.dot(x[i], w0) + b0
-        # print(y_)
-        # print(y[i])
         shot = np.argmax(y_)
-        # print(shot)
         if (y[i][shot] == 1):
             ok += 1
 
@@ -55,9 +52,9 @@ if __name__ == '__main__': # main here
     td = td/255.
     vd = vd/255.
 
-    epoch = 200
+    epoch = 50
     learning_rate = 0.01
-    batch_size = 100
+    batch_size = 10
 
     # 10 dimensoes para os pesos
     w = np.random.uniform(-0.1, 0.1, (len(td[0]), 10))
@@ -74,19 +71,18 @@ if __name__ == '__main__': # main here
     for i in range(len(vl)):
         vl10[i][int(vl[i])] = 1
 
-    #print(tl10)
-    
 
     print("Trainning...")
     for i in range(1, epoch):
         for j in range (len(td)//batch_size):
             l = j*batch_size
             r = min(l+batch_size, len(td))
+            print("batch {} from {} to {}".format(j, l, r))
             b, w = gradient_descent_step(b, w, td[l:r], tl10[l:r], learning_rate)
 
         ac = validate(vd, vl10, w, b)
 
-        print("ac: {};".format(ac))
+        print("{}/{} - ac: {};".format(i, epoch, ac))
 
 
 	# for i in range(0, 4):

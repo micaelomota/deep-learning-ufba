@@ -10,7 +10,9 @@ def gradient_descent_step(b0, w0, x, y, learning_rate):
     for i in range(N): # x[i] -> y[i]
         y_ = np.dot(x[i], w0) + b0
         deltinha = y_ - y[i]
+        
         loss += 1./N * (y_ - y[i])**2
+        
         w_grad += deltinha*x[i] * 2./N
         b_grad += 2./N * deltinha
 
