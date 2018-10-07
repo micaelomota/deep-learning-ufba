@@ -85,9 +85,6 @@ if __name__ == '__main__': # main here
         print("{}/{} - ac: {};".format(i, epoch, ac))
 
 
-    np.save("w", w)
-    np.save("b", b)
-
 	# for i in range(0, 4):
 	# 	cv2.imshow('imagem' + str(i), td[i])
 		

@@ -12,5 +12,18 @@ def testDataloader():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+def testSaveModel():
+    import numpy as np
+    x = np.zeros((10, 10))
+    np.save("w", x)
+
+
+def testLoadModel():
+    import numpy as np
+    x = np.load("w.npy")
+    print(x)
+
 if (__name__ == '__main__'):
-	testDataloader()
+	#testDataloader()
+    testSaveModel()
+    testLoadModel()
