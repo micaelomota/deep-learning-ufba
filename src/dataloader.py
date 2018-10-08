@@ -46,7 +46,7 @@ def loadTestData(path):
     names = []
 
     files = sorted(os.listdir(path))
-    print(str(len(files)) + " files found")
+    #print(str(len(files)) + " files found")
     for f in files:
         names.append(f)
         imagePath = os.path.join(path, f)
