@@ -13,9 +13,12 @@ def gradient_descent_step(b0, w0, x, y, learning_rate):
     w_grad = np.zeros((len(w0), 10))
     
     N = len(x)
+    loss = 0
     for i in range(N): # x[i] -> y[i]
         y_ = sigmoid(np.dot(x[i], w0) + b0)
         
+        loss = y_ - y[i]
+
         # derivada de E em W
         dE = (y_ - y[i]) * (y_*(1-y_))
 
@@ -29,7 +32,7 @@ def gradient_descent_step(b0, w0, x, y, learning_rate):
     b1 = b0 - (learning_rate * b_grad)
     w1 = w0 - (learning_rate * w_grad)
     #print(b1)
-    return b1, w1
+    return b1, w1, loss
 
 def validate(x, y, w0, b0):
     ok = 0
@@ -74,15 +77,19 @@ if __name__ == '__main__': # main here
 
     print("Trainning...")
     for i in range(1, epoch):
+        if i+1 == 40:
+            learning_rate = 0.001
+
+        loss = 0
         for j in range (len(td)//batch_size):
             l = j*batch_size
             r = min(l+batch_size, len(td))
             #print("batch {} from {} to {}".format(j, l, r))
-            b, w = gradient_descent_step(b, w, td[l:r], tl10[l:r], learning_rate)
+            b, w, loss = gradient_descent_step(b, w, td[l:r], tl10[l:r], learning_rate)
 
         ac = validate(vd, vl10, w, b)
-
-        print("{}/{} - ac: {};".format(i, epoch, ac))
+        m = np.argmin(loss)
+        print("{}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, loss[m]))
 
 
     np.save("w", w)

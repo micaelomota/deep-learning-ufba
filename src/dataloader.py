@@ -41,3 +41,16 @@ def splitValidation(data, label, percentValidation):
     #d = dict(label=folder, train=fData, validation=validationItems)
     #data.append(d)
 
+def loadTestData(path):
+    data = []
+    names = []
+
+    files = sorted(os.listdir(path))
+    #print(str(len(files)) + " files found")
+    for f in files:
+        names.append(f)
+        imagePath = os.path.join(path, f)
+        img = cv2.imread(imagePath, cv2.IMREAD_GRAYSCALE)
+        data.append(img)
+
+    return np.array(data), np.array(names)
