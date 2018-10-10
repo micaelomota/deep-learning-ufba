@@ -22,11 +22,15 @@ def gradient_descent_step(bj, wj, bk, wk, x, y, learning_rate):
     wj_grad = np.zeros((hidden_layer_neurons, len(x[0])))
     bj_grad = np.zeros(hidden_layer_neurons)
 
+    loss = np.zeros(10)
+
     for i in range(N):
         """ layer J """
         j_activation = sigmoid(np.dot(x[i], wj) + bj)
 
         k_activation = sigmoid(np.dot(j_activation, wk) + bk)
+
+        loss += (k_activation - y[i])**2
 
         # derivada de E em W
         dk = (k_activation - y[i]) * (k_activation * (1 - k_activation))
@@ -46,8 +50,9 @@ def gradient_descent_step(bj, wj, bk, wk, x, y, learning_rate):
 
     b2 = bj - (learning_rate * bj_grad/float(N))    
     w2 = wj - (learning_rate * wj_grad.transpose()/float(N))
+    loss = loss/float(N)
 
-    return b2, w2, b1, w1
+    return b2, w2, b1, w1, loss
 
 def validate(x, y, w0, b0, w1, b1):
     ok = 0
@@ -101,11 +106,12 @@ if __name__ == '__main__': # main here
             l = j*batch_size
             r = min(l+batch_size, len(td))
             #print("batch {} from {} to {}".format(j, l, r))
-            bj, wj, bk, wk = gradient_descent_step(bj, wj, bk, wk, td[l:r], tl10[l:r], learning_rate)
+            bj, wj, bk, wk, loss = gradient_descent_step(bj, wj, bk, wk, td[l:r], tl10[l:r], learning_rate)
 
         ac = validate(vd, vl10, wj, bj, bk, wk)
 
-        print("{}/{} - ac: {};".format(i, epoch, ac))
+        m = np.argmin(loss)
+        print("epoch: {}/{} - ac: {} - loss: {}".format(i, epoch, ac, loss[m]))
 
 
 	# for i in range(0, 4):
