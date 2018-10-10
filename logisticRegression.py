@@ -12,23 +12,31 @@ def gradient_descent_step(b0, w0, x, y, learning_rate):
     b_grad = np.zeros(10)
     w_grad = np.zeros((len(w0), 10))
     loss = np.zeros(10)
-    
+
+    #print("w_grad shape: {}".format(w_grad.shape))
+
     N = len(x)
     for i in range(N): # x[i] -> y[i]
         y_ = sigmoid(np.dot(x[i], w0) + b0)
-        
+        #print("y_ shape: {}".format(y_.shape))
         loss += (y_ - y[i])**2
 
         # derivada de E em W
         dE = (y_ - y[i]) * (y_*(1-y_))
+        #print("dE_ shape: {}".format(dE.shape))
 
-        for j in range(len(x[i])):
-            w_grad[j] += x[i][j]*dE
+        reshapeX = np.reshape(x[i], (len(x[i]), 1))
+        reshapeDE = np.reshape(dE, (1, len(dE)))
+        
+        b_grad += dE
+        w_grad += np.dot(reshapeX, reshapeDE)
+        # for j in range(len(x[i])):
+        #     w_grad[j] += x[i][j]*dE
+        
 
-        b_grad += dE/N
-
-    w_grad = w_grad/N
-    loss = loss/N
+    w_grad = w_grad/float(N)
+    b_grad = b_grad/float(N)
+    loss = loss/float(N)
 
     b1 = b0 - (learning_rate * b_grad)
     w1 = w0 - (learning_rate * w_grad)
