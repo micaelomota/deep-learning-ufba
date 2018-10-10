@@ -2,39 +2,61 @@ import numpy as np
 from src import dataloader
 import cv2
 
+epoch = 50
+learning_rate = 0.01
+batch_size = 10
+hidden_layer_neurons = 128
+
+
 def reLU(z):
     return [x if x > 0 else 0 for x in z]
 
 def sigmoid(z):
     return 1.0/(1.0 + np.exp(-z))
 
-def gradient_descent_step(b0, w0, x, y, learning_rate):
-    b_grad = np.zeros(10)
-    w_grad = np.zeros((len(w0), 10))
-    
+def gradient_descent_step(bj, wj, bk, wk, x, y, learning_rate):
     N = len(x)
-    for i in range(N): # x[i] -> y[i]
-        y_ = sigmoid(np.dot(x[i], w0) + b0)
-        
+    wk_grad = np.zeros((10, hidden_layer_neurons))
+    bk_grad = np.zeros(10)
+
+    wj_grad = np.zeros((hidden_layer_neurons, len(x[0])))
+    bj_grad = np.zeros(hidden_layer_neurons)
+
+    for i in range(N):
+        """ layer J """
+        j_activation = sigmoid(np.dot(x[i], wj) + bj)
+
+        k_activation = sigmoid(np.dot(j_activation, wk) + bk)
+
         # derivada de E em W
-        dE = (y_ - y[i]) * (y_*(1-y_))
+        dk = (k_activation - y[i]) * (k_activation * (1 - k_activation))
+        """ layer k gradient """
+        wk_grad += np.dot(np.reshape(dk, (10, 1)), np.reshape(j_activation, (1, hidden_layer_neurons)))
+        bk_grad += dk
 
-        for j in range(len(x[i])):
-            w_grad[j] += x[i][j]*dE
+        dj = np.dot(dk, wk.transpose())
 
-        b_grad += dE/N
+        wj_grad += np.dot(np.reshape(dj, (hidden_layer_neurons, 1)), np.reshape(x[i], (1, len(x[i]))))
+        bj_grad += dj
 
-    w_grad = w_grad/N
+        #print("wj shape: {}".format(wj_grad.shape))
 
-    b1 = b0 - (learning_rate * b_grad)
-    w1 = w0 - (learning_rate * w_grad)
-    #print(b1)
-    return b1, w1
+    b1 = bk - (learning_rate * bk_grad/float(N))
+    w1 = wk - (learning_rate * wk_grad.transpose()/float(N))
 
-def validate(x, y, w0, b0):
+    b2 = bj - (learning_rate * bj_grad/float(N))    
+    w2 = wj - (learning_rate * wj_grad.transpose()/float(N))
+
+    return b2, w2, b1, w1
+
+def validate(x, y, w0, b0, w1, b1):
     ok = 0
     for i in range(len(x)):
-        y_ = np.dot(x[i], w0) + b0
+        #y_ = np.dot(x[i], w0) + b0
+
+        j_activation = sigmoid(np.dot(x[i], wj) + bj)
+        y_ = sigmoid(np.dot(j_activation, wk) + bk)
+
         shot = np.argmax(y_)
         if (y[i][shot] == 1):
             ok += 1
@@ -52,15 +74,14 @@ if __name__ == '__main__': # main here
     td = td/255.
     vd = vd/255.
 
-    epoch = 50
-    learning_rate = 0.01
-    batch_size = 10
-
-    # 10 dimensoes para os pesos
-    w = np.random.uniform(-0.1, 0.1, (len(td[0]), 10))
-    b = np.zeros(10)
-    #print(w[0])
     
+    # 10 dimensoes para os pesos
+    wj = np.random.uniform(-0.1, 0.1, (len(td[0]), hidden_layer_neurons))
+    bj = np.zeros(hidden_layer_neurons)
+    
+    wk = np.random.uniform(-0.1, 0.1, (hidden_layer_neurons, 10))
+    bk = np.zeros(10)
+
     # 10 dimensoes para o y
     tl10 = np.zeros((len(tl), 10))
     for i in range(len(tl)):
@@ -72,15 +93,17 @@ if __name__ == '__main__': # main here
         vl10[i][int(vl[i])] = 1
 
 
+    print("Network: wj: {}; bj: {}; wk: {}; bk: {}".format(wj.shape, bj.shape, wk.shape, bk.shape))
+
     print("Trainning...")
     for i in range(1, epoch):
         for j in range (len(td)//batch_size):
             l = j*batch_size
             r = min(l+batch_size, len(td))
             #print("batch {} from {} to {}".format(j, l, r))
-            b, w = gradient_descent_step(b, w, td[l:r], tl10[l:r], learning_rate)
+            bj, wj, bk, wk = gradient_descent_step(bj, wj, bk, wk, td[l:r], tl10[l:r], learning_rate)
 
-        ac = validate(vd, vl10, w, b)
+        ac = validate(vd, vl10, wj, bj, bk, wk)
 
         print("{}/{} - ac: {};".format(i, epoch, ac))
 
