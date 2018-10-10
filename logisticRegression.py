@@ -95,8 +95,7 @@ if __name__ == '__main__': # main here
             np.save("models/logisticRegression/w", w)
             np.save("models/logisticRegression/b", b)
 
-        m = np.argmin(loss)
-        print("{}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, loss[m]))
+        print("{}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, np.mean(loss)))
 
 
     
