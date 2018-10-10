@@ -103,6 +103,9 @@ if __name__ == '__main__': # main here
     print("Trainning...")
     maxAc = 0
     for i in range(epoch):
+        if i+1 == 40:
+            learning_rate = 0.001
+            
         for j in range (len(td)//batch_size):
             l = j*batch_size
             r = min(l+batch_size, len(td))
@@ -118,8 +121,7 @@ if __name__ == '__main__': # main here
             np.save("models/mlp/wk", wk)
             np.save("models/mlp/bk", bk)
         
-        m = np.argmin(loss)
-        print("epoch: {}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, loss[m]))
+        print("epoch: {}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, np.mean(loss)))
 
 
 	# for i in range(0, 4):
