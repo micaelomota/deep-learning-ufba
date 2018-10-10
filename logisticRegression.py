@@ -92,8 +92,8 @@ if __name__ == '__main__': # main here
         ac = validate(vd, vl10, w, b)
         if (ac > maxAc):
             maxAc = ac
-            np.save("w", w)
-            np.save("b", b)
+            np.save("models/logisticRegression/w", w)
+            np.save("models/logisticRegression/b", b)
 
         m = np.argmin(loss)
         print("{}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, loss[m]))

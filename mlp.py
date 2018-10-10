@@ -101,6 +101,7 @@ if __name__ == '__main__': # main here
     print("Network: wj: {}; bj: {}; wk: {}; bk: {}".format(wj.shape, bj.shape, wk.shape, bk.shape))
 
     print("Trainning...")
+    maxAc = 0
     for i in range(1, epoch):
         for j in range (len(td)//batch_size):
             l = j*batch_size
@@ -109,7 +110,14 @@ if __name__ == '__main__': # main here
             bj, wj, bk, wk, loss = gradient_descent_step(bj, wj, bk, wk, td[l:r], tl10[l:r], learning_rate)
 
         ac = validate(vd, vl10, wj, bj, bk, wk)
-
+        
+        if (ac > maxAc):
+            maxAc = ac
+            np.save("models/mlp/wj", wj)
+            np.save("models/mlp/bj", bj)
+            np.save("models/mlp/wk", wk)
+            np.save("models/mlp/bk", bk)
+        
         m = np.argmin(loss)
         print("epoch: {}/{} - ac: {} - loss: {}".format(i, epoch, ac, loss[m]))
 
