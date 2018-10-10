@@ -11,13 +11,13 @@ def sigmoid(z):
 def gradient_descent_step(b0, w0, x, y, learning_rate):
     b_grad = np.zeros(10)
     w_grad = np.zeros((len(w0), 10))
+    loss = np.zeros(10)
     
     N = len(x)
-    loss = 0
     for i in range(N): # x[i] -> y[i]
         y_ = sigmoid(np.dot(x[i], w0) + b0)
         
-        loss = (y_ - y[i])**2
+        loss += (y_ - y[i])**2
 
         # derivada de E em W
         dE = (y_ - y[i]) * (y_*(1-y_))
@@ -28,6 +28,7 @@ def gradient_descent_step(b0, w0, x, y, learning_rate):
         b_grad += dE/N
 
     w_grad = w_grad/N
+    loss = loss/N
 
     b1 = b0 - (learning_rate * b_grad)
     w1 = w0 - (learning_rate * w_grad)
