@@ -102,7 +102,7 @@ if __name__ == '__main__': # main here
 
     print("Trainning...")
     maxAc = 0
-    for i in range(1, epoch):
+    for i in range(epoch):
         for j in range (len(td)//batch_size):
             l = j*batch_size
             r = min(l+batch_size, len(td))
@@ -119,7 +119,7 @@ if __name__ == '__main__': # main here
             np.save("models/mlp/bk", bk)
         
         m = np.argmin(loss)
-        print("epoch: {}/{} - ac: {} - loss: {}".format(i, epoch, ac, loss[m]))
+        print("epoch: {}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, loss[m]))
 
 
 	# for i in range(0, 4):
