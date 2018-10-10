@@ -11,11 +11,14 @@ def sigmoid(z):
 def gradient_descent_step(b0, w0, x, y, learning_rate):
     b_grad = np.zeros(10)
     w_grad = np.zeros((len(w0), 10))
+    loss = np.zeros(10)
     
     N = len(x)
     for i in range(N): # x[i] -> y[i]
         y_ = sigmoid(np.dot(x[i], w0) + b0)
         
+        loss += (y_ - y[i])**2
+
         # derivada de E em W
         dE = (y_ - y[i]) * (y_*(1-y_))
 
@@ -25,16 +28,17 @@ def gradient_descent_step(b0, w0, x, y, learning_rate):
         b_grad += dE/N
 
     w_grad = w_grad/N
+    loss = loss/N
 
     b1 = b0 - (learning_rate * b_grad)
     w1 = w0 - (learning_rate * w_grad)
     #print(b1)
-    return b1, w1
+    return b1, w1, loss
 
 def validate(x, y, w0, b0):
     ok = 0
     for i in range(len(x)):
-        y_ = np.dot(x[i], w0) + b0
+        y_ = sigmoid(np.dot(x[i], w0) + b0)
         shot = np.argmax(y_)
         if (y[i][shot] == 1):
             ok += 1
@@ -73,20 +77,29 @@ if __name__ == '__main__': # main here
 
 
     print("Trainning...")
-    for i in range(1, epoch):
+    maxAc = 0
+    for i in range(epoch):
+        if i+1 == 40:
+            learning_rate = 0.001
+
+        loss = 0
         for j in range (len(td)//batch_size):
             l = j*batch_size
             r = min(l+batch_size, len(td))
             #print("batch {} from {} to {}".format(j, l, r))
-            b, w = gradient_descent_step(b, w, td[l:r], tl10[l:r], learning_rate)
+            b, w, loss = gradient_descent_step(b, w, td[l:r], tl10[l:r], learning_rate)
 
         ac = validate(vd, vl10, w, b)
+        if (ac > maxAc):
+            maxAc = ac
+            np.save("w", w)
+            np.save("b", b)
 
-        print("{}/{} - ac: {};".format(i, epoch, ac))
+        m = np.argmin(loss)
+        print("{}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, loss[m]))
 
 
-    np.save("w", w)
-    np.save("b", b)
+    
 
 	# for i in range(0, 4):
 	# 	cv2.imshow('imagem' + str(i), td[i])
