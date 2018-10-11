@@ -2,10 +2,10 @@ import numpy as np
 from src import dataloader
 import cv2
 
-epoch = 50
-learning_rate = 0.01
+epoch = 90
+learning_rate = 0.1
 batch_size = 10
-hidden_layer_neurons = 128
+hidden_layer_neurons = 256
 
 
 def reLU(z):
@@ -103,8 +103,8 @@ if __name__ == '__main__': # main here
     print("Trainning...")
     maxAc = 0
     for i in range(epoch):
-        if i+1 == 40:
-            learning_rate = 0.001
+        if (i+1)%40 == 0:
+            learning_rate = learning_rate/10
             
         for j in range (len(td)//batch_size):
             l = j*batch_size
@@ -121,7 +121,7 @@ if __name__ == '__main__': # main here
             np.save("models/mlp/wk", wk)
             np.save("models/mlp/bk", bk)
         
-        print("epoch: {}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, np.mean(loss)))
+        print("epoch: {}/{} - ac: {} - loss: {} - learningRate: {} - maxAc: {}".format(i+1, epoch, ac, np.mean(loss), learning_rate, maxAc))
 
 
 	# for i in range(0, 4):
