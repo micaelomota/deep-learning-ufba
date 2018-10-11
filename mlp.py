@@ -5,7 +5,7 @@ import cv2
 epoch = 90
 learning_rate = 0.1
 batch_size = 10
-hidden_layer_neurons = 256
+hidden_layer_neurons = 64
 
 
 def reLU(z):
