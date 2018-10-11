@@ -64,7 +64,7 @@ if __name__ == '__main__': # main here
     td = td/255.
     vd = vd/255.
 
-    epoch = 50
+    epoch = 200
     learning_rate = 0.01
     batch_size = 10
 
@@ -87,8 +87,8 @@ if __name__ == '__main__': # main here
     print("Trainning...")
     maxAc = 0
     for i in range(epoch):
-        if i+1 == 40:
-            learning_rate = 0.001
+        if i+1 % 50 == 0:
+            learning_rate = learning_rate/10
 
         loss = 0
         for j in range (len(td)//batch_size):
