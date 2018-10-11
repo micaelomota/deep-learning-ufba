@@ -64,9 +64,9 @@ if __name__ == '__main__': # main here
     td = td/255.
     vd = vd/255.
 
-    epoch = 200
-    learning_rate = 0.01
-    batch_size = 10
+    epoch = 130
+    learning_rate = 0.1
+    batch_size = 20
 
     # 10 dimensoes para os pesos
     w = np.random.uniform(-0.1, 0.1, (len(td[0]), 10))
@@ -87,7 +87,7 @@ if __name__ == '__main__': # main here
     print("Trainning...")
     maxAc = 0
     for i in range(epoch):
-        if i+1 % 50 == 0:
+        if (i+1)% 40 == 0:
             learning_rate = learning_rate/10
 
         loss = 0
@@ -99,11 +99,12 @@ if __name__ == '__main__': # main here
 
         ac = validate(vd, vl10, w, b)
         if (ac > maxAc):
+            #print("maxAc - Saving model...")
             maxAc = ac
             np.save("models/logisticRegression/w", w)
             np.save("models/logisticRegression/b", b)
 
-        print("{}/{} - ac: {} - loss: {}".format(i+1, epoch, ac, np.mean(loss)))
+        print("{}/{} - ac: {} - loss: {} - learningRate: {} - maxAc: {}".format(i+1, epoch, ac, np.mean(loss), learning_rate, maxAc))
 
 
     
