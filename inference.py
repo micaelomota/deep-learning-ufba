@@ -7,7 +7,7 @@ def runLogisticRegression():
     b = np.load("models/logisticRegression/b.npy")
 
     data, names = dataloader.loadTestData('data_part1/test/')
-    data = np.reshape(data, (len(data), 77*71))
+    data = np.reshape(data, (len(data), 77*71))/255
     for i in range(len(data)):
         y_ = np.dot(data[i], w) + b
         shot = np.argmax(y_)
@@ -23,7 +23,7 @@ def runMlp():
     bk = np.load("models/mlp/bk.npy")
 
     data, names = dataloader.loadTestData('data_part1/test/')
-    data = np.reshape(data, (len(data), 77*71))
+    data = np.reshape(data, (len(data), 77*71))/255
 
     for i in range(len(data)):
         print("{} {}".format(names[i], mlp.inference(data[i], wj, bj, wk, bk)))

@@ -75,11 +75,8 @@ if __name__ == '__main__': # main here
     td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
 
     # normalizing train and validation data [0, 1]
-    td = np.reshape(td, (len(td), 77*71))
-    vd = np.reshape(vd, (len(vd), 77*71))
-    td = td/255.
-    vd = vd/255.
-
+    td = np.reshape(td, (len(td), 77*71))/255
+    vd = np.reshape(vd, (len(vd), 77*71))/255
     
     # 10 dimensoes para os pesos
     wj = np.random.uniform(-0.1, 0.1, (len(td[0]), hidden_layer_neurons))
