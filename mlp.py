@@ -54,15 +54,16 @@ def gradient_descent_step(bj, wj, bk, wk, x, y, learning_rate):
 
     return b2, w2, b1, w1, loss
 
-def validate(x, y, w0, b0, w1, b1):
+def inference(x, wj, bj, wk, bk):
+    j_activation = sigmoid(np.dot(x, wj) + bj)
+    y_ = sigmoid(np.dot(j_activation, wk) + bk)
+
+    return np.argmax(y_)
+
+def validate(x, y, wj, bj, wk, bk):
     ok = 0
     for i in range(len(x)):
-        #y_ = np.dot(x[i], w0) + b0
-
-        j_activation = sigmoid(np.dot(x[i], wj) + bj)
-        y_ = sigmoid(np.dot(j_activation, wk) + bk)
-
-        shot = np.argmax(y_)
+        shot = inference(x[i], wj, bj, wk, bk)
         if (y[i][shot] == 1):
             ok += 1
 
@@ -112,7 +113,7 @@ if __name__ == '__main__': # main here
             #print("batch {} from {} to {}".format(j, l, r))
             bj, wj, bk, wk, loss = gradient_descent_step(bj, wj, bk, wk, td[l:r], tl10[l:r], learning_rate)
 
-        ac = validate(vd, vl10, wj, bj, bk, wk)
+        ac = validate(vd, vl10, wj, bj, wk, bk)
         
         if (ac > maxAc):
             maxAc = ac
