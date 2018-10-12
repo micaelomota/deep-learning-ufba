@@ -29,4 +29,5 @@ def runMlp():
         print("{} {}".format(names[i], mlp.inference(data[i], wj, bj, wk, bk)))
 
 
-runMlp()
+#runMlp()
+runLogisticRegression()
