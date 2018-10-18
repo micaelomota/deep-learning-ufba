@@ -32,8 +32,8 @@ with graph.as_default():
 	y_one_hot = tf.one_hot(y, len(classes))
 	learning_rate = tf.placeholder(tf.float32)
 
-	fc = tf.layers.dense(X, 512, activation=tf.nn.relu)
-	out = tf.layers.dense(fc, len(classes), activation=tf.nn.sigmoid)
+	#fc = tf.layers.dense(X, 512, activation=tf.nn.relu)
+	out = tf.layers.dense(X, len(classes), activation=tf.nn.sigmoid)
 
 	loss = tf.reduce_mean(tf.reduce_sum((y_one_hot-out)**2))
 	train_op = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(loss)
@@ -79,9 +79,9 @@ def evaluation(session, Xv, yv, name='Evaluation'):
 
 
 NUM_EPOCHS_FULL = 50
-S_LEARNING_RATE_FULL = 0.001
+S_LEARNING_RATE_FULL = 0.01
 F_LEARNING_RATE_FULL = 0.0001
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 
 with tf.Session(graph = graph) as session:
 	# weight initialization
