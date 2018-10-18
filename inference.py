@@ -1,6 +1,9 @@
 import numpy as np
 from src import dataloader
 import cv2
+import tensorflow as tf
+import time
+
 
 def runLogisticRegression():
     w = np.load("models/logisticRegression/w.npy")
@@ -29,5 +32,7 @@ def runMlp():
         print("{} {}".format(names[i], mlp.inference(data[i], wj, bj, wk, bk)))
 
 
+
 #runMlp()
-runLogisticRegression()
+#runLogisticRegression()
+#runMlpTF()

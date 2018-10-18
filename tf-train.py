@@ -93,3 +93,6 @@ with tf.Session(graph = graph) as session:
 		training_epoch(session, train_op, lr)
 
 		val_acc, val_loss = evaluation(session, vd, vl, name='Validation')
+
+	save_path = tf.train.Saver().save(session, "models/tf-lr/model.ckpt")
+	print("Model saved in path: %s" % save_path)

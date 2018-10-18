@@ -41,7 +41,7 @@ with graph.as_default():
 	
 
 
-def training_epoch(session, op, lr):
+def training_epoch(epoch, session, op, lr):
 	batch_list = np.random.permutation(len(td))
 	start = time.time()
 	train_loss = 0
@@ -62,7 +62,7 @@ def training_epoch(session, op, lr):
 	print('Training Epoch: '+str(epoch)+' LR: '+str(lr)+' Time: '+str(time.time()-start)+' ACC: '+str(train_acc/pass_size)+' Loss: '+str(train_loss/pass_size))
 
 
-def evaluation(session, Xv, yv, name='Evaluation'):
+def evaluation(epoch, session, Xv, yv, name='Evaluation'):
 	start = time.time()
 	eval_loss = 0
 	eval_acc = 0
@@ -75,19 +75,39 @@ def evaluation(session, Xv, yv, name='Evaluation'):
 
 	return eval_acc/len(Xv), eval_loss/len(Xv)
 
-
 NUM_EPOCHS_FULL = 50
 S_LEARNING_RATE_FULL = 0.01
 F_LEARNING_RATE_FULL = 0.0001
 BATCH_SIZE = 16
 
-with tf.Session(graph = graph) as session:
-	# weight initialization
-	session.run(tf.global_variables_initializer())
+def train():
+	
+	with tf.Session(graph = graph) as session:
+		# weight initialization
+		session.run(tf.global_variables_initializer())
 
-	# full optimization
-	for epoch in range(NUM_EPOCHS_FULL):
-		lr = (S_LEARNING_RATE_FULL*(NUM_EPOCHS_FULL-epoch-1)+F_LEARNING_RATE_FULL*epoch)/(NUM_EPOCHS_FULL-1)
-		training_epoch(session, train_op, lr)
+		# full optimization
+		for epoch in range(NUM_EPOCHS_FULL):
+			lr = (S_LEARNING_RATE_FULL*(NUM_EPOCHS_FULL-epoch-1)+F_LEARNING_RATE_FULL*epoch)/(NUM_EPOCHS_FULL-1)
+			training_epoch(epoch, session, train_op, lr)
 
-		val_acc, val_loss = evaluation(session, vd, vl, name='Validation')
+			val_acc, val_loss = evaluation(epoch, session, vd, vl, name='Validation')
+
+		save_path = tf.train.Saver().save(session, "models/tf-mlp/model.ckpt")
+		print("Model saved in path: %s" % save_path)
+
+def runInference():
+    with tf.Session(graph = graph) as session:
+        s = tf.train.Saver().restore(session, "models/tf-mlp/model.ckpt")
+        print("model loaded")
+
+todo = "_"
+while todo != "train" and todo != "inference":
+	todo = input("What do you want todo? (train or inference): ")
+	if todo == "train":
+		train()
+	elif todo == "inference":
+		runInference()
+	else:
+		print("please type 'train' or 'inference'")
+#runInference()
