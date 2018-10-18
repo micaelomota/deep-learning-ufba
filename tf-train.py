@@ -69,17 +69,34 @@ S_LEARNING_RATE_FULL = 0.01
 F_LEARNING_RATE_FULL = 0.0001
 BATCH_SIZE = 32
 
+writerLoss = tf.summary.FileWriter("./logs-lr/loss")
+writerAcc = tf.summary.FileWriter("./logs-lr/acc")
+log_var = tf.Variable(0.0)
+tf.summary.scalar("train", log_var)
+
+write_op = tf.summary.merge_all()
+plotSession = tf.InteractiveSession()
+plotSession.run(tf.global_variables_initializer())
+
 def train():
 	with tf.Session(graph = graph) as session:
 		# weight initialization
 		session.run(tf.global_variables_initializer())
 
-		# full optimization
 		for epoch in range(NUM_EPOCHS_FULL):
 			lr = (S_LEARNING_RATE_FULL*(NUM_EPOCHS_FULL-epoch-1)+F_LEARNING_RATE_FULL*epoch)/(NUM_EPOCHS_FULL-1)
 			training_epoch(epoch, session, train_op, lr)
 
 			val_acc, val_loss = evaluation(epoch, session, vd, vl, name='Validation')
+			#tf.summary.scalar('acc', val_acc)
+			#tf.summary.scalar('loss', val_loss)
+			summary = plotSession.run(write_op, {log_var: val_acc})
+			writerAcc.add_summary(summary, epoch)
+			writerAcc.flush()
+
+			summary = plotSession.run(write_op, {log_var: val_loss})
+			writerLoss.add_summary(summary, epoch)
+			writerLoss.flush()
 
 		save_path = tf.train.Saver().save(session, "models/tf-lr/model.ckpt")
 		print("Model saved in path: %s" % save_path)
@@ -94,8 +111,7 @@ def runInference():
 	with tf.Session(graph = graph) as session:
 		s = tf.train.Saver().restore(session, "models/tf-lr/model.ckpt")
 		print("model loaded")
-		for i in range(len(data)):
-			
+		for i in range(len(data)):			
 			ret = session.run([result], feed_dict = { X: np.array([rdata[i]]) })
 			output.write("{} {}\n".format(names[i], ret[0][0]))
 	output.close()
