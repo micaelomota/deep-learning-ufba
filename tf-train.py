@@ -104,7 +104,7 @@ def runInference():
 print("======= Logistic Regression ==========")
 todo = "_"
 while todo != "train" and todo != "inference":
-	todo = input("What do you want todo? (1:train, 2:inference, any: quit): ")
+	todo = input("What do you want todo? (1:train, 2:inference, other: quit): ")
 	if todo == "1":
 		train()
 	elif todo == "2":
