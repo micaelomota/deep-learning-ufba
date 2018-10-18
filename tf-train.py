@@ -10,20 +10,6 @@ td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
 td = np.reshape(td, (len(td), 77*71))/255
 vd = np.reshape(vd, (len(vd), 77*71))/255
 
-# # 10 dimensoes para o y
-# tl10 = np.zeros((len(tl), 10))
-# for i in range(len(tl)):
-#     tl10[i][int(tl[i])] = 1
-
-# vl10 = np.zeros((len(vl), 10))
-# for i in range(len(vl)):
-#     vl10[i][int(vl[i])] = 1
-
-# print(td.shape, tl.shape, vd.shape, vl.shape)
-# exit()
-
-
-
 graph = tf.Graph()
 with graph.as_default():
 	X = tf.placeholder(tf.float32, shape = (None, len(td[0])))
@@ -43,7 +29,7 @@ with graph.as_default():
 	
 
 
-def training_epoch(session, op, lr):
+def training_epoch(epoch, session, op, lr):
 	batch_list = np.random.permutation(len(td))
 	start = time.time()
 	train_loss = 0
@@ -64,7 +50,7 @@ def training_epoch(session, op, lr):
 	print('Training Epoch: '+str(epoch)+' LR: '+str(lr)+' Time: '+str(time.time()-start)+' ACC: '+str(train_acc/pass_size)+' Loss: '+str(train_loss/pass_size))
 
 
-def evaluation(session, Xv, yv, name='Evaluation'):
+def evaluation(epoch, session, Xv, yv, name='Evaluation'):
 	start = time.time()
 	eval_loss = 0
 	eval_acc = 0
@@ -83,16 +69,45 @@ S_LEARNING_RATE_FULL = 0.01
 F_LEARNING_RATE_FULL = 0.0001
 BATCH_SIZE = 32
 
-with tf.Session(graph = graph) as session:
-	# weight initialization
-	session.run(tf.global_variables_initializer())
+def train():
+	with tf.Session(graph = graph) as session:
+		# weight initialization
+		session.run(tf.global_variables_initializer())
 
-	# full optimization
-	for epoch in range(NUM_EPOCHS_FULL):
-		lr = (S_LEARNING_RATE_FULL*(NUM_EPOCHS_FULL-epoch-1)+F_LEARNING_RATE_FULL*epoch)/(NUM_EPOCHS_FULL-1)
-		training_epoch(session, train_op, lr)
+		# full optimization
+		for epoch in range(NUM_EPOCHS_FULL):
+			lr = (S_LEARNING_RATE_FULL*(NUM_EPOCHS_FULL-epoch-1)+F_LEARNING_RATE_FULL*epoch)/(NUM_EPOCHS_FULL-1)
+			training_epoch(epoch, session, train_op, lr)
 
-		val_acc, val_loss = evaluation(session, vd, vl, name='Validation')
+			val_acc, val_loss = evaluation(epoch, session, vd, vl, name='Validation')
 
-	save_path = tf.train.Saver().save(session, "models/tf-lr/model.ckpt")
-	print("Model saved in path: %s" % save_path)
+		save_path = tf.train.Saver().save(session, "models/tf-lr/model.ckpt")
+		print("Model saved in path: %s" % save_path)
+
+def runInference():
+	data, names = dataloader.loadTestData('data_part1/test/')
+	rdata = np.reshape(data, (len(data), 77*71))/255
+
+	output_path = "tfOutputRL.txt"
+
+	output = open(output_path, "w") 
+	with tf.Session(graph = graph) as session:
+		s = tf.train.Saver().restore(session, "models/tf-lr/model.ckpt")
+		print("model loaded")
+		for i in range(len(data)):
+			
+			ret = session.run([result], feed_dict = { X: np.array([rdata[i]]) })
+			output.write("{} {}\n".format(names[i], ret[0][0]))
+	output.close()
+	print("output saved file: " + output_path)
+
+print("======= Logistic Regression ==========")
+todo = "_"
+while todo != "train" and todo != "inference":
+	todo = input("What do you want todo? (1:train, 2:inference, any: quit): ")
+	if todo == "1":
+		train()
+	elif todo == "2":
+		runInference()
+	else:
+		exit()

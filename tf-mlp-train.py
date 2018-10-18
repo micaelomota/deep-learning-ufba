@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from src import dataloader
 import time
+import cv2
 
 data, labels, classes = dataloader.loadData("data_part1/train/")
 td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
@@ -9,18 +10,6 @@ td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
 # normalizing data
 td = np.reshape(td, (len(td), 77*71))/255
 vd = np.reshape(vd, (len(vd), 77*71))/255
-
-# # 10 dimensoes para o y
-# tl10 = np.zeros((len(tl), 10))
-# for i in range(len(tl)):
-#     tl10[i][int(tl[i])] = 1
-
-# vl10 = np.zeros((len(vl), 10))
-# for i in range(len(vl)):
-#     vl10[i][int(vl[i])] = 1
-
-# print(td.shape, tl.shape, vd.shape, vl.shape)
-# exit()
 
 graph = tf.Graph()
 with graph.as_default():
@@ -81,7 +70,6 @@ F_LEARNING_RATE_FULL = 0.0001
 BATCH_SIZE = 16
 
 def train():
-	
 	with tf.Session(graph = graph) as session:
 		# weight initialization
 		session.run(tf.global_variables_initializer())
@@ -97,17 +85,34 @@ def train():
 		print("Model saved in path: %s" % save_path)
 
 def runInference():
-    with tf.Session(graph = graph) as session:
-        s = tf.train.Saver().restore(session, "models/tf-mlp/model.ckpt")
-        print("model loaded")
+	data, names = dataloader.loadTestData('data_part1/test/')
+	rdata = np.reshape(data, (len(data), 77*71))/255
+
+	output_path = "tfOutputMlp.txt"
+
+	output = open(output_path, "w") 
+	with tf.Session(graph = graph) as session:
+		s = tf.train.Saver().restore(session, "models/tf-mlp/model.ckpt")
+		print("model loaded")
+		for i in range(len(data)):
+			
+			ret = session.run([result], feed_dict = { X: np.array([rdata[i]]) })
+			output.write("{} {}\n".format(names[i], ret[0][0]))
+			# cv2.imshow(names[i], data[i])
+			# cv2.waitKey(0)
+			# cv2.destroyAllWindows()
+			#exit()
+	output.close()
+	print("output saved file: " + output_path)
+
+print("======= Multilayer Perceptron ==========")
 
 todo = "_"
 while todo != "train" and todo != "inference":
-	todo = input("What do you want todo? (train or inference): ")
-	if todo == "train":
+	todo = input("What do you want todo? (1:train, 2:inference, any: quit): ")
+	if todo == "1":
 		train()
-	elif todo == "inference":
+	elif todo == "2":
 		runInference()
 	else:
-		print("please type 'train' or 'inference'")
-#runInference()
+		exit()
