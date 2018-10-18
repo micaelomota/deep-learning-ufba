@@ -22,8 +22,6 @@ vd = np.reshape(vd, (len(vd), 77*71))/255
 # print(td.shape, tl.shape, vd.shape, vl.shape)
 # exit()
 
-
-
 graph = tf.Graph()
 with graph.as_default():
 	X = tf.placeholder(tf.float32, shape = (None, len(td[0])))
@@ -32,7 +30,7 @@ with graph.as_default():
 	y_one_hot = tf.one_hot(y, len(classes))
 	learning_rate = tf.placeholder(tf.float32)
 
-	fc = tf.layers.dense(X, 512, activation=tf.nn.relu)
+	fc = tf.layers.dense(X, 128, activation=tf.nn.relu)
 	out = tf.layers.dense(fc, len(classes), activation=tf.nn.sigmoid)
 
 	loss = tf.reduce_mean(tf.reduce_sum((y_one_hot-out)**2))
@@ -80,8 +78,8 @@ def evaluation(session, Xv, yv, name='Evaluation'):
 
 NUM_EPOCHS_FULL = 50
 S_LEARNING_RATE_FULL = 0.01
-F_LEARNING_RATE_FULL = 0.001
-BATCH_SIZE = 64
+F_LEARNING_RATE_FULL = 0.0001
+BATCH_SIZE = 16
 
 with tf.Session(graph = graph) as session:
 	# weight initialization
