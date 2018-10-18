@@ -10,14 +10,14 @@ td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
 td = np.reshape(td, (len(td), 77*71))/255
 vd = np.reshape(vd, (len(vd), 77*71))/255
 
-# 10 dimensoes para o y
-tl10 = np.zeros((len(tl), 10))
-for i in range(len(tl)):
-    tl10[i][int(tl[i])] = 1
+# # 10 dimensoes para o y
+# tl10 = np.zeros((len(tl), 10))
+# for i in range(len(tl)):
+#     tl10[i][int(tl[i])] = 1
 
-vl10 = np.zeros((len(vl), 10))
-for i in range(len(vl)):
-    vl10[i][int(vl[i])] = 1
+# vl10 = np.zeros((len(vl), 10))
+# for i in range(len(vl)):
+#     vl10[i][int(vl[i])] = 1
 
 # print(td.shape, tl.shape, vd.shape, vl.shape)
 # exit()
@@ -29,11 +29,11 @@ with graph.as_default():
 	X = tf.placeholder(tf.float32, shape = (None, len(td[0])))
 	y = tf.placeholder(tf.int64, shape = (None,))
 	
-	y_one_hot = tf.one_hot(y, len(tl))
+	y_one_hot = tf.one_hot(y, len(classes))
 	learning_rate = tf.placeholder(tf.float32)
 
 	fc = tf.layers.dense(X, 512, activation=tf.nn.relu)
-	out = tf.layers.dense(fc, len(tl), activation=tf.nn.sigmoid)
+	out = tf.layers.dense(fc, len(classes), activation=tf.nn.sigmoid)
 
 	loss = tf.reduce_mean(tf.reduce_sum((y_one_hot-out)**2))
 	train_op = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(loss)
