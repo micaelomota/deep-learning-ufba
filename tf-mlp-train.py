@@ -69,6 +69,15 @@ S_LEARNING_RATE_FULL = 0.01
 F_LEARNING_RATE_FULL = 0.0001
 BATCH_SIZE = 16
 
+writerLoss = tf.summary.FileWriter("./logs/mlp/loss")
+writerAcc = tf.summary.FileWriter("./logs/mlp/acc")
+log_var = tf.Variable(0.0)
+tf.summary.scalar("train", log_var)
+
+write_op = tf.summary.merge_all()
+plotSession = tf.InteractiveSession()
+plotSession.run(tf.global_variables_initializer())
+
 def train():
 	with tf.Session(graph = graph) as session:
 		# weight initialization
@@ -80,6 +89,14 @@ def train():
 			training_epoch(epoch, session, train_op, lr)
 
 			val_acc, val_loss = evaluation(epoch, session, vd, vl, name='Validation')
+
+			summary = plotSession.run(write_op, {log_var: val_acc})
+			writerAcc.add_summary(summary, epoch)
+			writerAcc.flush()
+
+			summary = plotSession.run(write_op, {log_var: val_loss})
+			writerLoss.add_summary(summary, epoch)
+			writerLoss.flush()
 
 		save_path = tf.train.Saver().save(session, "models/tf-mlp/model.ckpt")
 		print("Model saved in path: %s" % save_path)

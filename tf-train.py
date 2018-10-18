@@ -69,8 +69,8 @@ S_LEARNING_RATE_FULL = 0.01
 F_LEARNING_RATE_FULL = 0.0001
 BATCH_SIZE = 32
 
-writerLoss = tf.summary.FileWriter("./logs-lr/loss")
-writerAcc = tf.summary.FileWriter("./logs-lr/acc")
+writerLoss = tf.summary.FileWriter("./logs/lr/loss")
+writerAcc = tf.summary.FileWriter("./logs/lr/acc")
 log_var = tf.Variable(0.0)
 tf.summary.scalar("train", log_var)
 
