@@ -18,6 +18,7 @@ vd = np.reshape(vd, (len(vd), IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))/255
 
 graph = tf.Graph()
 with graph.as_default():
+	is_train = tf.placeholder(tf.bool, name="is_train")
 
 	# X = tf.placeholder(tf.float32, shape = (None, len(td[0])))
 	X = tf.placeholder(tf.float32, shape = (None, IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))
@@ -41,7 +42,7 @@ with graph.as_default():
 	# fully conected layer
 	fc = tf.layers.dense(pool2_flat, 128, activation=tf.nn.relu)
 
-	dropout = tf.layers.dropout(fc, 0.4)
+	dropout = tf.layers.dropout(fc, 0.4, training=is_train)
 
 	y = tf.placeholder(tf.int64, shape = (None,))
 	y_one_hot = tf.one_hot(y, len(classes))
@@ -73,7 +74,8 @@ def training_epoch(epoch, session, op, lr):
 		ret = session.run([op, loss, correct], feed_dict = {
 			X: X_batch, 
 			y: y_batch, 
-			learning_rate: lr
+			learning_rate: lr,
+			is_train: 1
 		})
 		
 		train_loss += ret[1]*BATCH_SIZE
@@ -88,7 +90,7 @@ def evaluation(epoch, session, Xv, yv, name='Evaluation'):
 	eval_loss = 0
 	eval_acc = 0
 	for j in range(0, len(Xv), BATCH_SIZE):
-		ret = session.run([loss, correct], feed_dict = {X: Xv[j:j+BATCH_SIZE], y: yv[j:j+BATCH_SIZE]})
+		ret = session.run([loss, correct], feed_dict = {X: Xv[j:j+BATCH_SIZE], y: yv[j:j+BATCH_SIZE], is_train: 0})
 		eval_loss += ret[0]*min(BATCH_SIZE, len(Xv)-j)
 		eval_acc += ret[1]
 
@@ -150,7 +152,7 @@ def runInference():
 		print("model loaded")
 		for i in range(len(data)):
 			
-			ret = session.run([result], feed_dict = { X: np.array([rdata[i]]) })
+			ret = session.run([result], feed_dict = { X: np.array([rdata[i]]), is_train: 0})
 			output.write("{} {}\n".format(names[i], ret[0][0]))
 			# cv2.imshow(names[i], data[i])
 			# cv2.waitKey(0)
