@@ -103,8 +103,8 @@ S_LEARNING_RATE_FULL = 0.01
 F_LEARNING_RATE_FULL = 0.0001
 BATCH_SIZE = 16
 
-writerLoss = tf.summary.FileWriter("./logs/project3/loss")
-writerAcc = tf.summary.FileWriter("./logs/project3/acc")
+writerLoss = tf.summary.FileWriter("./logs/project3/loss_")
+writerAcc = tf.summary.FileWriter("./logs/project3/acc_")
 log_var = tf.Variable(0.0)
 tf.summary.scalar("train", log_var)
 
@@ -142,8 +142,8 @@ def train():
 
 def runInference():
 	data, names = dataloader.loadTestData('data_part1/test/')
-	rdata = np.reshape(data, (len(data), 77*71))/255
-
+	#rdata = np.reshape(data, (len(data), 77*71))/255
+	rdata = np.reshape(data, (len(data), IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))/255 
 	output_path = "tfProject3.txt"
 
 	output = open(output_path, "w") 
@@ -152,7 +152,7 @@ def runInference():
 		print("model loaded")
 		for i in range(len(data)):
 			
-			ret = session.run([result], feed_dict = { X: np.array([rdata[i]]) })
+			ret = session.run([result], feed_dict = { X: np.array([rdata[i]]), is_train: 0 })
 			output.write("{} {}\n".format(names[i], ret[0][0]))
 			# cv2.imshow(names[i], data[i])
 			# cv2.waitKey(0)
