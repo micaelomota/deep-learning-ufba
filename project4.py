@@ -11,7 +11,7 @@ NUM_CHANNELS = 1
 TRAIN_PATH = "data_part1/train/"
 
 data, labels, classes = dataloader.loadData(TRAIN_PATH)
-td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
+td, tl, vd, vl = dataloader.splitValidation(data, labels, 50)
 
 # normalizing data
 # td = np.reshape(td, (len(td), 77*71))/255
@@ -106,8 +106,8 @@ S_LEARNING_RATE_FULL = 0.01
 F_LEARNING_RATE_FULL = 0.0001
 BATCH_SIZE = 16
 
-writerLoss = tf.summary.FileWriter("./logs/project3/loss_")
-writerAcc = tf.summary.FileWriter("./logs/project3/acc_")
+writerLoss = tf.summary.FileWriter("./logs/project4/loss_")
+writerAcc = tf.summary.FileWriter("./logs/project4/acc_")
 log_var = tf.Variable(0.0)
 tf.summary.scalar("train", log_var)
 
@@ -130,7 +130,7 @@ def train():
 
 			if val_acc > maxAcc:
 				maxAcc = val_acc
-				save_path = tf.train.Saver().save(session, "models/tf-project3/model.ckpt")
+				save_path = tf.train.Saver().save(session, "models/tf-project4/model.ckpt")
 				print("Model with acc: {} saved in path {}".format(maxAcc,save_path))
 
 			summary = plotSession.run(write_op, {log_var: val_acc})
@@ -147,11 +147,11 @@ def runInference():
 	data, names = dataloader.loadTestData('data_part1/test/')
 	#rdata = np.reshape(data, (len(data), 77*71))/255
 	rdata = np.reshape(data, (len(data), IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))/255 
-	output_path = "tfProject3.txt"
+	output_path = "tfproject4.txt"
 
 	output = open(output_path, "w") 
 	with tf.Session(graph = graph) as session:
-		s = tf.train.Saver().restore(session, "models/tf-project3/model.ckpt")
+		s = tf.train.Saver().restore(session, "models/tf-project4/model.ckpt")
 		print("model loaded")
 		for i in range(len(data)):
 			
