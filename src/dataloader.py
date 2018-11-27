@@ -4,6 +4,7 @@ import cv2
 import tensorflow as tf
 from math import ceil, floor
 import uuid 
+import random
 
 def loadData(path):
     data = []
@@ -180,3 +181,18 @@ def translate_images(X_imgs):
 
     X_translated_arr = np.array(X_translated_arr, dtype = np.float32)
     return X_translated_arr
+
+def rotate_images(images):
+    angles = []
+    for i in range(len(images)):
+        sinal = -1
+        if (i+1)%2 == 0:
+            sinal = sinal * -1
+
+        angles.append(sinal*random.random()*np.pi/4)
+
+    rotate = tf.contrib.image.rotate(images, angles=angles)
+    # graph = tf.Graph()
+    with tf.Session() as sess:
+        rotated_images = sess.run(rotate)
+        return rotated_images

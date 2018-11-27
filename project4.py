@@ -73,6 +73,16 @@ def training_epoch(epoch, session, op, lr):
 		X_batch = td.take(batch_list[j:j+BATCH_SIZE], axis=0)
 		y_batch = tl.take(batch_list[j:j+BATCH_SIZE], axis=0)
 
+		# run augmentation here
+		rotated = dataloader.rotate_images(X_batch)
+		
+		for k in range(len(rotated)):
+			cv2.imshow('original ' + str(y_batch[k]), X_batch[k])
+			cv2.imshow('rotated ' + str(y_batch[k]), rotated[k])
+		
+		cv2.waitKey(0)
+		cv2.destroyAllWindows()
+
 
 		ret = session.run([op, loss, correct], feed_dict = {
 			X: X_batch, 
@@ -168,14 +178,12 @@ print("======= PROJECT 4 ==========")
 
 todo = "_"
 while todo != "train" and todo != "inference":
-	todo = input("What do you want to do? (1:train, 2:inference, 3: aumentation, other: quit): ")
+	todo = input("What do you want to do? (1:train, 2:inference other: quit): ")
 	if todo == "1":
 		print("Trainning...")
 		train()
 	elif todo == "2":
 		print("Running inference...")
 		runInference()
-	elif todo == "3":
-		dataloader.aumentation(TRAIN_PATH)
 	else:
 		exit()
