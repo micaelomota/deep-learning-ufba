@@ -8,6 +8,11 @@ IMAGE_HEIGHT = 77
 IMAGE_WIDTH = 71
 NUM_CHANNELS = 1
 
+NUM_EPOCHS_FULL = 50
+S_LEARNING_RATE_FULL = 0.01
+F_LEARNING_RATE_FULL = 0.0001
+BATCH_SIZE = 8
+
 TRAIN_PATH = "data_part1/train/"
 
 data, labels, classes = dataloader.loadData(TRAIN_PATH)
@@ -75,18 +80,45 @@ def training_epoch(epoch, session, op, lr):
 
 		# run augmentation here
 		rotated = dataloader.rotate_images(X_batch)
-		
-		for k in range(len(rotated)):
+		translated = dataloader.translate_images(X_batch)
+		rotated_translated = dataloader.rotate_images(translated)
+		translated_rotated = dataloader.translate_images(rotated)
+
+		scaled = dataloader.central_scale_images(X_batch)
+
+		for k in range(len(scaled)):
 			cv2.imshow('original ' + str(y_batch[k]), X_batch[k])
-			cv2.imshow('rotated ' + str(y_batch[k]), rotated[k])
-		
+			cv2.imshow('scaled ' + str(y_batch[k]), scaled[k])
+
 		cv2.waitKey(0)
 		cv2.destroyAllWindows()
+		# exit()
 
 
+		a = np.append(X_batch, rotated, axis=0)
+		b = np.append(a, translated, axis=0)
+		c = np.append(b, rotated_translated, axis=0)
+		augmented = np.append(c, translated_rotated, axis=0)
+
+		al = np.append(y_batch, y_batch, axis=0)
+		bl = np.append(al, y_batch, axis=0)
+		cl = np.append(bl, y_batch, axis=0)
+		augmentedLabels = np.append(cl, y_batch, axis=0)
+
+		# print("shape: {}".format(augmented.shape))
+		# print("labels: {}".format(augmentedLabels.size))
+
+		# for k in range(len(augmented)):
+		# 	# cv2.imshow('original ' + str(y_batch[k]), X_batch[k])
+		# 	cv2.imshow('augmentation ' + str(augmentedLabels[k]), augmented[k])
+		
+		# cv2.waitKey(0)
+		# cv2.destroyAllWindows()
+		# exit()
+		# print("running session with augmented data: {}".format(augmented.shape))
 		ret = session.run([op, loss, correct], feed_dict = {
-			X: X_batch, 
-			y: y_batch, 
+			X: augmented, 
+			y: augmentedLabels, 
 			learning_rate: lr,
 			is_train: 1
 		})
@@ -111,10 +143,6 @@ def evaluation(epoch, session, Xv, yv, name='Evaluation'):
 
 	return eval_acc/len(Xv), eval_loss/len(Xv)
 
-NUM_EPOCHS_FULL = 50
-S_LEARNING_RATE_FULL = 0.01
-F_LEARNING_RATE_FULL = 0.0001
-BATCH_SIZE = 16
 
 writerLoss = tf.summary.FileWriter("./logs/project4/loss_")
 writerAcc = tf.summary.FileWriter("./logs/project4/acc_")
