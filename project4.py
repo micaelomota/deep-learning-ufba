@@ -71,6 +71,7 @@ def training_epoch(epoch, session, op, lr):
 	start = time.time()
 	train_loss = 0
 	train_acc = 0
+	aug_batch_size = 0
 	for j in range(0, len(td), BATCH_SIZE):
 		
 		if j+BATCH_SIZE > len(td):
@@ -79,7 +80,7 @@ def training_epoch(epoch, session, op, lr):
 		y_batch = tl.take(batch_list[j:j+BATCH_SIZE], axis=0)
 
 		# run augmentation here
-		rotated = dataloader.rotate_images(X_batch)
+		# rotated = dataloader.rotate_images(X_batch)
 		translated = dataloader.translate_images(X_batch)
 		# rotated_translated = dataloader.rotate_images(translated)
 		# translated_rotated = dataloader.translate_images(rotated)
@@ -94,13 +95,14 @@ def training_epoch(epoch, session, op, lr):
 		# cv2.destroyAllWindows()
 		# exit()
 
-		a = np.append(X_batch, rotated, axis=0)
-		b = np.append(a, translated, axis=0)
+		a = np.append(X_batch, translated, axis=0)
+		aug_batch_size = a.size
+		# b = np.append(a, translated, axis=0)
 		# c = np.append(b, rotated_translated, axis=0)
 		# augmented = np.append(c, translated_rotated, axis=0)
 
 		al = np.append(y_batch, y_batch, axis=0)
-		bl = np.append(al, y_batch, axis=0)
+		# bl = np.append(al, y_batch, axis=0)
 		# cl = np.append(bl, y_batch, axis=0)
 		# augmentedLabels = np.append(cl, y_batch, axis=0)
 
@@ -116,17 +118,17 @@ def training_epoch(epoch, session, op, lr):
 		# exit()
 		# print("running session with augmented data: {}".format(augmented.shape))
 		ret = session.run([op, loss, correct], feed_dict = {
-			X: b, 
-			y: bl, 
+			X: a, 
+			y: al, 
 			learning_rate: lr,
 			is_train: 1
 		})
 		
-		train_loss += ret[1]*BATCH_SIZE
+		train_loss += ret[1]*aug_batch_size
 		train_acc += ret[2]
 
-	pass_size = (len(td)-len(td)%BATCH_SIZE)
-	print('Training Epoch: '+str(epoch)+' LR: '+str(lr)+' Time: '+str(time.time()-start)+' ACC: '+str(train_acc/pass_size)+' Loss: '+str(train_loss/pass_size))
+	#pass_size = (len(td)-len(td)%BATCH_SIZE)
+	print('Training Epoch: '+str(epoch)+' LR: '+str(lr)+' Time: '+str(time.time()-start)+' ACC: '+str(train_acc/aug_batch_size)+' Loss: '+str(train_loss/aug_batch_size))
 
 
 def evaluation(epoch, session, Xv, yv, name='Evaluation'):
