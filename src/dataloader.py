@@ -52,7 +52,7 @@ def loadTestData(path):
     return np.array(data), np.array(names)
 
 def central_scale_images(X_imgs):
-    scales = [ random.randint(3, 9)/10 ]
+    scales = [ random.randint(5, 9)/10 ]
     print(scales)
     # Various settings needed for Tensorflow operation
     boxes = np.zeros((len(scales), 4), dtype = np.float32)

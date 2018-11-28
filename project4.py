@@ -81,29 +81,28 @@ def training_epoch(epoch, session, op, lr):
 		# run augmentation here
 		rotated = dataloader.rotate_images(X_batch)
 		translated = dataloader.translate_images(X_batch)
-		rotated_translated = dataloader.rotate_images(translated)
-		translated_rotated = dataloader.translate_images(rotated)
+		# rotated_translated = dataloader.rotate_images(translated)
+		# translated_rotated = dataloader.translate_images(rotated)
 
-		scaled = dataloader.central_scale_images(X_batch)
+		# scaled = dataloader.central_scale_images(X_batch)
 
-		for k in range(len(scaled)):
-			cv2.imshow('original ' + str(y_batch[k]), X_batch[k])
-			cv2.imshow('scaled ' + str(y_batch[k]), scaled[k])
+		# for k in range(len(scaled)):
+		# 	cv2.imshow('original ' + str(y_batch[k]), X_batch[k])
+		# 	cv2.imshow('scaled ' + str(y_batch[k]), scaled[k])
 
-		cv2.waitKey(0)
-		cv2.destroyAllWindows()
+		# cv2.waitKey(0)
+		# cv2.destroyAllWindows()
 		# exit()
-
 
 		a = np.append(X_batch, rotated, axis=0)
 		b = np.append(a, translated, axis=0)
-		c = np.append(b, rotated_translated, axis=0)
-		augmented = np.append(c, translated_rotated, axis=0)
+		# c = np.append(b, rotated_translated, axis=0)
+		# augmented = np.append(c, translated_rotated, axis=0)
 
 		al = np.append(y_batch, y_batch, axis=0)
 		bl = np.append(al, y_batch, axis=0)
-		cl = np.append(bl, y_batch, axis=0)
-		augmentedLabels = np.append(cl, y_batch, axis=0)
+		# cl = np.append(bl, y_batch, axis=0)
+		# augmentedLabels = np.append(cl, y_batch, axis=0)
 
 		# print("shape: {}".format(augmented.shape))
 		# print("labels: {}".format(augmentedLabels.size))
@@ -117,8 +116,8 @@ def training_epoch(epoch, session, op, lr):
 		# exit()
 		# print("running session with augmented data: {}".format(augmented.shape))
 		ret = session.run([op, loss, correct], feed_dict = {
-			X: augmented, 
-			y: augmentedLabels, 
+			X: b, 
+			y: bl, 
 			learning_rate: lr,
 			is_train: 1
 		})
