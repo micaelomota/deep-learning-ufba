@@ -17,18 +17,15 @@ NUM_CHANNELS = 1   # number of channels of the image
 data, labels, classes = dataloader.loadData(TRAIN_PATH)
 
 resized = dataloader.resize(data, IMAGE_WIDTH, IMAGE_HEIGHT)
-cv2.imshow('resized', resized[10])
-cv2.waitKey(0)
-exit()
 
-
-td, tl, vd, vl = dataloader.splitValidation(data, labels, 10)
+td, tl, vd, vl = dataloader.splitValidation(resized, labels, 10)
 
 td = np.reshape(td, (len(td), IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))/255 
 vd = np.reshape(vd, (len(vd), IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))/255 
 
-
-
+# cv2.imshow('resized', resized[10])
+# cv2.waitKey(0)
+# exit()
 
 # X_train, y_train, classes_train = load_multiclass_dataset(TRAIN_FOLDER, IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS)
 # X_train = X_train/255.#.reshape(-1, IMAGE_HEIGHT*IMAGE_WIDTH*NUM_CHANNELS)/255.
@@ -36,12 +33,6 @@ vd = np.reshape(vd, (len(vd), IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))/255
 #X_train, y_train, X_val, y_val = split(X_train, y_train, SPLIT_RATE)
 #print(X_train.shape, y_train.shape, X_val.shape, y_val.shape)
 
-# ---------------------------------------------------------------------------------------------------------- #
-# Description:                                                                                               #
-#         Create a training graph that receives a batch of images and their respective labels and run a      #
-#         training iteration or an inference job. Train the last FC layer using fine_tuning_op or the entire #
-#         network using full_backprop_op. A weight decay of 1e-4 is used for full_backprop_op only.          #
-# ---------------------------------------------------------------------------------------------------------- #
 graph = tf.Graph()
 with graph.as_default():
 	X = tf.placeholder(tf.float32, shape = (None, IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))
@@ -67,35 +58,31 @@ with graph.as_default():
 	decoder_variables = [v for v in tf.global_variables() if v.name.startswith('decoder')]
 	encoder_variables = [v for v in tf.global_variables() if v.name.startswith('encoder')]
 
-	print(encoder_variables, '\n\n\n\n')
-	print(decoder_variables)
+	#print(encoder_variables, '\n\n\n\n')
+	#print(decoder_variables)
 
 	loss = tf.reduce_mean(tf.reduce_sum((out-X)**2))
 
 	encoder_train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss, var_list=encoder_variables)
 	decoder_train_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss, var_list=decoder_variables)
 
-# ---------------------------------------------------------------------------------------------------------- #
-# Description:                                                                                               #
-#         Run one training epoch using images in X_train and labels in y_train.                              #
-# ---------------------------------------------------------------------------------------------------------- #
 def training_epoch(session, lr):
-	batch_list = np.random.permutation(len(X_train))
+	batch_list = np.random.permutation(len(td))
 
 	start = time.time()
 	train_loss1 = 0
 	train_loss2 = 0
-	for j in range(0, len(X_train), BATCH_SIZE):
-		if j+BATCH_SIZE > len(X_train):
+	for j in range(0, len(td), BATCH_SIZE):
+		if j+BATCH_SIZE > len(td):
 			break
-		X_batch = X_train.take(batch_list[j:j+BATCH_SIZE], axis=0)
+		X_batch = td.take(batch_list[j:j+BATCH_SIZE], axis=0)
 
 		ret1 = session.run([encoder_train_op, loss], feed_dict = {X: X_batch, learning_rate: lr, is_training: True})
 		ret2 = session.run([decoder_train_op, loss], feed_dict = {X: X_batch, learning_rate: lr, is_training: True})
 		train_loss1 += ret1[1]*BATCH_SIZE
 		train_loss2 += ret2[1]*BATCH_SIZE
 
-	pass_size = (len(X_train)-len(X_train)%BATCH_SIZE)
+	pass_size = (len(td)-len(td)%BATCH_SIZE)
 	print('Training Epoch:'+str(epoch)+' LR:'+str(lr)+' Time:'+str(time.time()-start)+' Loss1:'+str(train_loss1/pass_size)+' Loss2:'+str(train_loss2/pass_size))
 
 def evaluation(session, Xv, yv, name='Evaluation'):
@@ -123,8 +110,8 @@ with tf.Session(graph = graph) as session:
 		lr = (S_LEARNING_RATE_FULL*(NUM_EPOCHS_FULL-epoch-1)+F_LEARNING_RATE_FULL*epoch)/(NUM_EPOCHS_FULL-1)
 		training_epoch(session, lr)
 
-		#val_acc, val_loss = evaluation(session, X_val, y_val, name='Validation')
-		cv2.imshow('input', X_train[0].reshape(IMAGE_HEIGHT, IMAGE_WIDTH))
-		rec = session.run(out, feed_dict = {X: X_train[0:0+1], is_training: False})
-		cv2.imshow('output', rec[0].reshape(IMAGE_HEIGHT, IMAGE_WIDTH))
-		cv2.waitKey(0)
+		# val_acc, val_loss = evaluation(session, X_val, y_val, name='Validation')
+		# cv2.imshow('input', td[0].reshape(IMAGE_HEIGHT, IMAGE_WIDTH))
+		# rec = session.run(out, feed_dict = {X: td[0:0+1], is_training: False})
+		# cv2.imshow('output', rec[0].reshape(IMAGE_HEIGHT, IMAGE_WIDTH))
+		# cv2.waitKey(0)

@@ -115,6 +115,6 @@ def translate_images(images):
 def resize(data, width, heigth):
     resized = []
     for i in range(len(data)):
-        resized[i] = cv2.resize(data[i], (width, heigth))
+        resized.append(cv2.resize(data[i], (width, heigth)))
     
     return np.array(resized)
