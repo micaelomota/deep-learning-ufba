@@ -111,3 +111,10 @@ def translate_images(images):
     with tf.Session() as sess:
         translated_images = sess.run(translate)
         return translated_images
+
+def resize(data, width, heigth):
+    resized = []
+    for i in range(len(data)):
+        resized[i] = cv2.resize(data[i], (width, heigth))
+    
+    return np.array(resized)
