@@ -104,6 +104,13 @@ def training_epoch(session, lr):
 		# Train generator
 		_, gl, genOut = session.run([generator_op, genloss, gen_out], feed_dict = {X: X_batch, noise: noise_temp, learning_rate: lr, is_training: True})
 		
+		if j == 0 :
+			print("saving images")
+			for i in range(BATCH_SIZE):
+				img = genOut[i]
+				cv2.imwrite('generated/img'+str(i)+'.png', img)
+
+
 		discTrueY = np.zeros((len(X_batch)*2), dtype=float)
 		#discFakeY = np.zeros((len(X_batch), 2))
 
@@ -114,9 +121,6 @@ def training_epoch(session, lr):
 			discTrueY[BATCH_SIZE+i] = 0.
 
 		discTrainBatch = np.append(X_batch, genOut, axis=0) # join batches
-		#print(discTrainBatch.shape)
-		#print(discTrueY.shape)
-		#exit()
 
 		# Train discriminator
 		_, dl = session.run([discriminator_op, discloss], feed_dict = {X: discTrainBatch, y: discTrueY, learning_rate: lr, is_training: True})
@@ -126,7 +130,7 @@ def training_epoch(session, lr):
 		disc_loss += dl*(BATCH_SIZE*2)
 
 	pass_size = (len(td)-len(td)%BATCH_SIZE)
-	print('Training Epoch: '+str(epoch)+' LR: '+str(lr)+' Time: '+str(time.time()-start)+' Gen loss: '+str(gen_loss/pass_size)+' Disc loss: '+str(disc_loss/(pass_size*2)))
+	print('Epoch: '+str(epoch)+' LR: '+str(lr)+' Time: '+str(time.time()-start)+' Gen loss: '+str(gen_loss/pass_size)+' Disc loss: '+str(disc_loss/(pass_size*2)))
 
 
 
