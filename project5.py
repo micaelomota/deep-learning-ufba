@@ -39,9 +39,7 @@ with graph.as_default():
 	X = tf.placeholder(tf.float32, shape = (None, IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))
 	
 	# discrimator y 
-	y = tf.placeholder(tf.int64, shape = (None,))
-	y_one_hot = tf.one_hot(y, len(discClasses))
-	#print(y_one_hot.shape)
+	y = tf.placeholder(tf.float32, shape = (None))
 
 	# generator input
 	noise = tf.placeholder(tf.float32, shape = (None, 8, 8, NUM_CHANNELS))
@@ -67,23 +65,21 @@ with graph.as_default():
 		# fully conected layer
 		fc = tf.layers.dense(pool2_flat, 128, activation=tf.nn.relu)
 		# output layer
-		out = tf.layers.dense(fc, len(discClasses), activation=tf.nn.sigmoid)
-		print(out.shape)
+		disc_out = tf.layers.dense(fc, 1, activation=tf.nn.sigmoid)
+		print(disc_out.shape)
 
 	with tf.variable_scope('generator'):
-
 		print("generator")
-		out = tf.layers.conv2d_transpose(noise, 4, (3, 3), (2, 2), padding='same', activation=tf.nn.relu)
-		out = tf.layers.conv2d_transpose(out, 1, (3, 3), (4, 4), padding='same', activation=tf.nn.relu)
-		print(out.shape)
+		gen_out = tf.layers.conv2d_transpose(noise, 4, (3, 3), (2, 2), padding='same', activation=tf.nn.relu)
+		gen_out = tf.layers.conv2d_transpose(gen_out, 1, (3, 3), (4, 4), padding='same', activation=tf.nn.relu)
+		print(gen_out.shape)
 
 	
 	disc_variables = [v for v in tf.global_variables() if v.name.startswith('discriminator')]
 	gen_variables = [v for v in tf.global_variables() if v.name.startswith('generator')]
 
-
-	discloss = tf.reduce_mean(tf.reduce_sum((y_one_hot-out)**2))
-	genloss = tf.reduce_mean(tf.reduce_sum((out-X)**2))
+	discloss = tf.reduce_mean(tf.reduce_sum((y-disc_out)**2))
+	genloss = tf.reduce_mean(tf.reduce_sum((gen_out-X)**2))
 	
 	discriminator_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(discloss, var_list=disc_variables)
 	generator_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(genloss, var_list=gen_variables)
@@ -94,8 +90,8 @@ def training_epoch(session, lr):
 	batch_list = np.random.permutation(len(td))
 
 	start = time.time()
-	train_loss1 = 0
-	train_loss2 = 0
+	gen_loss = 0
+	disc_loss = 0
 	for j in range(0, len(td), BATCH_SIZE):
 		if j+BATCH_SIZE > len(td):
 			break
@@ -106,28 +102,31 @@ def training_epoch(session, lr):
 		noise_temp = np.random.uniform(-1., 1., size=[BATCH_SIZE, 8, 8, 1])
 		
 		# Train generator
-		#_, gl, genOut = session.run([generator_op, genloss, out], feed_dict = {X: X_batch, noise: noise_temp, learning_rate: lr, is_training: True})
+		_, gl, genOut = session.run([generator_op, genloss, gen_out], feed_dict = {X: X_batch, noise: noise_temp, learning_rate: lr, is_training: True})
 		
-		discTrueY = np.zeros((len(X_batch)))
+		discTrueY = np.zeros((len(X_batch)*2), dtype=float)
 		#discFakeY = np.zeros((len(X_batch), 2))
 
-		for i in range(len(X_batch)):
-			discTrueY[i] = 1
-		#	discFakeY[i][0] = 1
-		#print(discTrueY, discFakeY)
+		for i in range(BATCH_SIZE): # truth images
+			discTrueY[i] = 1.
 
-		# discInputTrain = np.append(X_batch, genOut, axis=0)
-		# discInputY = np.zeros((len(discInputTrain), 2) , dtype=np.int) # 0: fake, 1: true
-		# print(discInputTrain.shape)
-		# print(discInputY.shape)
+		for i in range(BATCH_SIZE): # fake images
+			discTrueY[BATCH_SIZE+i] = 0.
 
-		ret1 = session.run([discriminator_op, discloss, y_one_hot], feed_dict = {X: X_batch, y: discTrueY, learning_rate: lr, is_training: True})
-		print(ret1)
-		# train_loss1 += ret1[1]*BATCH_SIZE
-		# train_loss2 += ret2[1]*BATCH_SIZE
+		discTrainBatch = np.append(X_batch, genOut, axis=0) # join batches
+		#print(discTrainBatch.shape)
+		#print(discTrueY.shape)
+		#exit()
 
-	# pass_size = (len(td)-len(td)%BATCH_SIZE)
-	# print('Training Epoch: '+str(epoch)+' LR: '+str(lr)+' Time: '+str(time.time()-start)+' Loss1: '+str(train_loss1/pass_size)+' Loss2: '+str(train_loss2/pass_size))
+		# Train discriminator
+		_, dl = session.run([discriminator_op, discloss], feed_dict = {X: discTrainBatch, y: discTrueY, learning_rate: lr, is_training: True})
+		# print(dl)
+
+		gen_loss += gl*BATCH_SIZE
+		disc_loss += dl*(BATCH_SIZE*2)
+
+	pass_size = (len(td)-len(td)%BATCH_SIZE)
+	print('Training Epoch: '+str(epoch)+' LR: '+str(lr)+' Time: '+str(time.time()-start)+' Gen loss: '+str(gen_loss/pass_size)+' Disc loss: '+str(disc_loss/(pass_size*2)))
 
 
 
@@ -138,7 +137,6 @@ with tf.Session(graph = graph) as session:
 	for epoch in range(NUM_EPOCHS_FULL):
 		lr = (S_LEARNING_RATE_FULL*(NUM_EPOCHS_FULL-epoch-1)+F_LEARNING_RATE_FULL*epoch)/(NUM_EPOCHS_FULL-1)
 		training_epoch(session, lr)
-		exit()
 
 	# 	# if (epoch+1)%10 == 0:
 	# 	print("saving images...")
