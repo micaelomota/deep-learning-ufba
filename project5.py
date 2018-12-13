@@ -39,55 +39,53 @@ with graph.as_default():
 	X = tf.placeholder(tf.float32, shape = (None, IMAGE_HEIGHT, IMAGE_WIDTH, NUM_CHANNELS))
 	
 	# discrimator y 
-	# y = tf.placeholder(tf.int64, shape = (None,))
-	# y_one_hot = tf.one_hot(y, len(discClasses))
+	y = tf.placeholder(tf.int64, shape = (None,))
+	y_one_hot = tf.one_hot(y, len(discClasses))
+	#print(y_one_hot.shape)
 
 	# generator input
 	noise = tf.placeholder(tf.float32, shape = (None, 8, 8, NUM_CHANNELS))
 	
 	learning_rate = tf.placeholder(tf.float32)
+
 	is_training = tf.placeholder(tf.bool)
 	# print(X.shape)
 
-	# with tf.variable_scope('discriminator'):
-	# 	print("discriminator")
+	with tf.variable_scope('discriminator'):
+		print("discriminator")
+		# conv layer 1
+		convL1 = tf.layers.conv2d(X, 32, (3, 3), (1, 1), padding='valid', activation=tf.nn.relu)
+		# pooling layer 1
+		pool1 = tf.layers.max_pooling2d(inputs=convL1, pool_size=[2, 2], strides=2)
+		# conv layer 2
+		convL2 = tf.layers.conv2d(pool1, 64, (5, 5), (1, 1), padding='valid', activation=tf.nn.relu)
+		# pooling layer 2
+		pool2 = tf.layers.max_pooling2d(inputs=convL2, pool_size=[2, 2], strides=2)
+		# reshape
+		pool2_flat = tf.reshape(pool2, [-1, 13 * 13 * 64])
+		#print(pool2_flat.shape)
+		# fully conected layer
+		fc = tf.layers.dense(pool2_flat, 128, activation=tf.nn.relu)
+		# output layer
+		out = tf.layers.dense(fc, len(discClasses), activation=tf.nn.sigmoid)
+		print(out.shape)
 
-	# 	out = tf.layers.conv2d(X, 4, (3, 3), (1, 1), padding='same', activation=tf.nn.relu)
-	# 	out = tf.layers.max_pooling2d(out, (2, 2), (2, 2), padding='same')
-		
-	# 	out = tf.layers.dense(out, 128, activation=tf.nn.relu)
-
-	# 	out = tf.layers.conv2d(out, 16, (3, 3), (1, 1), padding='same', activation=tf.nn.relu)
-	# 	out = tf.layers.max_pooling2d(out, (2, 2), (2, 2), padding='same')
-
-	# 	out = tf.layers.dense(out, len(discClasses), activation=tf.nn.sigmoid)
-
-	# 	print(out.shape)
-	# 	out = tf.layers.max_pooling2d(out, (2, 2), (2, 2), padding='same')
-	# 	print(out.shape)
-		# out = tf.layers.conv2d(out, 16, (3, 3), (1, 1), padding='same', activation=tf.nn.relu)
-	# 	print(out.shape)
-	# 	out = tf.layers.max_pooling2d(out, (2, 2), (2, 2), padding='same')
-	# 	print(out.shape)
 	with tf.variable_scope('generator'):
+
 		print("generator")
-		# out = tf.layers.dense(noise, 1, activation=tf.nn.relu)
-		# out = tf.layers.conv2d_transpose(noise, 4, (3, 3), (2, 2), padding='same', activation=tf.nn.relu)
-		# print(out.shape)
 		out = tf.layers.conv2d_transpose(noise, 4, (3, 3), (2, 2), padding='same', activation=tf.nn.relu)
 		out = tf.layers.conv2d_transpose(out, 1, (3, 3), (4, 4), padding='same', activation=tf.nn.relu)
 		print(out.shape)
 
-	# disc_variables = [v for v in tf.global_variables() if v.name.startswith('discriminator')]
+	
+	disc_variables = [v for v in tf.global_variables() if v.name.startswith('discriminator')]
 	gen_variables = [v for v in tf.global_variables() if v.name.startswith('generator')]
 
-	#print(encoder_variables, '\n\n\n\n')
-	#print(decoder_variables)
 
-	# discloss = tf.reduce_mean(tf.reduce_sum((y_one_hot-out)**2))
+	discloss = tf.reduce_mean(tf.reduce_sum((y_one_hot-out)**2))
 	genloss = tf.reduce_mean(tf.reduce_sum((out-X)**2))
-
-	# discrimator_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(discloss, var_list=disc_variables)
+	
+	discriminator_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(discloss, var_list=disc_variables)
 	generator_op = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(genloss, var_list=gen_variables)
 
 
@@ -101,29 +99,30 @@ def training_epoch(session, lr):
 	for j in range(0, len(td), BATCH_SIZE):
 		if j+BATCH_SIZE > len(td):
 			break
-
+		
+		X_batch = td.take(batch_list[j:j+BATCH_SIZE], axis=0)
 
 		# Generate noise to feed to the generator
 		noise_temp = np.random.uniform(-1., 1., size=[BATCH_SIZE, 8, 8, 1])
 		
-
-		X_batch = td.take(batch_list[j:j+BATCH_SIZE], axis=0)
-
-		# ret1 = session.run([encoder_train_op, loss], feed_dict = {X: X_batch, learning_rate: lr, is_training: True})
-		_, gl, genOut = session.run([generator_op, genloss, out], feed_dict = {X: X_batch, noise: noise_temp, learning_rate: lr, is_training: True})
+		# Train generator
+		#_, gl, genOut = session.run([generator_op, genloss, out], feed_dict = {X: X_batch, noise: noise_temp, learning_rate: lr, is_training: True})
 		
+		discTrueY = np.zeros((len(X_batch)))
+		#discFakeY = np.zeros((len(X_batch), 2))
 
-		discTrueY = np.zeros((len(X_batch), 2))
-
+		for i in range(len(X_batch)):
+			discTrueY[i] = 1
+		#	discFakeY[i][0] = 1
+		#print(discTrueY, discFakeY)
 
 		# discInputTrain = np.append(X_batch, genOut, axis=0)
 		# discInputY = np.zeros((len(discInputTrain), 2) , dtype=np.int) # 0: fake, 1: true
 		# print(discInputTrain.shape)
 		# print(discInputY.shape)
 
-		print(gl, genOut.shape)
-		print (noise_temp.shape)
-		exit()
+		ret1 = session.run([discriminator_op, discloss, y_one_hot], feed_dict = {X: X_batch, y: discTrueY, learning_rate: lr, is_training: True})
+		print(ret1)
 		# train_loss1 += ret1[1]*BATCH_SIZE
 		# train_loss2 += ret2[1]*BATCH_SIZE
 
@@ -139,6 +138,7 @@ with tf.Session(graph = graph) as session:
 	for epoch in range(NUM_EPOCHS_FULL):
 		lr = (S_LEARNING_RATE_FULL*(NUM_EPOCHS_FULL-epoch-1)+F_LEARNING_RATE_FULL*epoch)/(NUM_EPOCHS_FULL-1)
 		training_epoch(session, lr)
+		exit()
 
 	# 	# if (epoch+1)%10 == 0:
 	# 	print("saving images...")
