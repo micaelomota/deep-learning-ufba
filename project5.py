@@ -113,7 +113,13 @@ def training_epoch(session, lr):
 		_, gl, genOut = session.run([generator_op, genloss, out], feed_dict = {X: X_batch, noise: noise_temp, learning_rate: lr, is_training: True})
 		
 
+		discTrueY = np.zeros((len(X_batch), 2))
 
+
+		# discInputTrain = np.append(X_batch, genOut, axis=0)
+		# discInputY = np.zeros((len(discInputTrain), 2) , dtype=np.int) # 0: fake, 1: true
+		# print(discInputTrain.shape)
+		# print(discInputY.shape)
 
 		print(gl, genOut.shape)
 		print (noise_temp.shape)
