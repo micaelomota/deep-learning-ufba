@@ -41,6 +41,7 @@ with graph.as_default():
 	print(X.shape)
 
 	with tf.variable_scope('encoder'):
+		print("enconder")
 		out = tf.layers.conv2d(X, 4, (3, 3), (1, 1), padding='same', activation=tf.nn.relu)
 		print(out.shape)
 		out = tf.layers.max_pooling2d(out, (2, 2), (2, 2), padding='same')
@@ -50,6 +51,7 @@ with graph.as_default():
 		out = tf.layers.max_pooling2d(out, (2, 2), (2, 2), padding='same')
 		print(out.shape)
 	with tf.variable_scope('decoder'):
+		print("decoder")
 		out = tf.layers.conv2d_transpose(out, 4, (3, 3), (2, 2), padding='same', activation=tf.nn.relu)
 		print(out.shape)
 		out = tf.layers.conv2d_transpose(out, 1, (3, 3), (2, 2), padding='same', activation=tf.nn.relu)
@@ -83,19 +85,7 @@ def training_epoch(session, lr):
 		train_loss2 += ret2[1]*BATCH_SIZE
 
 	pass_size = (len(td)-len(td)%BATCH_SIZE)
-	print('Training Epoch:'+str(epoch)+' LR:'+str(lr)+' Time:'+str(time.time()-start)+' Loss1:'+str(train_loss1/pass_size)+' Loss2:'+str(train_loss2/pass_size))
-
-def evaluation(session, Xv, yv, name='Evaluation'):
-	start = time.time()
-	eval_loss = 0
-	eval_acc = 0
-	for j in range(0, len(Xv), BATCH_SIZE):
-		ret = session.run([loss, correct], feed_dict = {X: Xv[j:j+BATCH_SIZE], y: yv[j:j+BATCH_SIZE], is_training: False})
-		eval_loss += ret[0]*min(BATCH_SIZE, len(Xv)-j)
-		eval_acc += ret[1]
-
-	print(name+' Epoch:'+str(epoch)+' Time:'+str(time.time()-start)+' ACC:'+str(eval_acc/len(Xv))+' Loss:'+str(eval_loss/len(Xv)))
-	return eval_acc/len(Xv), eval_loss/len(Xv)
+	print('Training Epoch: '+str(epoch)+' LR: '+str(lr)+' Time: '+str(time.time()-start)+' Loss1: '+str(train_loss1/pass_size)+' Loss2: '+str(train_loss2/pass_size))
 
 NUM_EPOCHS_FULL = 200
 S_LEARNING_RATE_FULL = 0.001
@@ -109,6 +99,14 @@ with tf.Session(graph = graph) as session:
 	for epoch in range(NUM_EPOCHS_FULL):
 		lr = (S_LEARNING_RATE_FULL*(NUM_EPOCHS_FULL-epoch-1)+F_LEARNING_RATE_FULL*epoch)/(NUM_EPOCHS_FULL-1)
 		training_epoch(session, lr)
+
+		# if (epoch+1)%10 == 0:
+		print("saving images...")
+		rec = session.run(out, feed_dict = {X: td, is_training: False})
+		print(rec.shape)
+		exit()
+		# for i in range(len(rec)):
+		# 	cv2.imwrite('generated/img'+str(i)+'.png', rec[i].reshape(IMAGE_HEIGHT, IMAGE_WIDTH))
 
 		# val_acc, val_loss = evaluation(session, X_val, y_val, name='Validation')
 		# cv2.imshow('input', td[0].reshape(IMAGE_HEIGHT, IMAGE_WIDTH))
